@@ -1,16 +1,18 @@
 let xVelocity = 1;
 let yVelocity = 0;
+let collisionsOn = true;
 let isRunning = false;
 //Iunno how to include these variables in the scope of playGame
-document.onkeydown = keyPush;
+document.onkeydown = keyPushS;
 
-window.onload = function playGame() {
+window.onload = function playSnakes() {
     if (!isRunning) {
         isRunning = true;
-        let scalefact = 10;
+        let scalefact = 20;
         let canvas = document.getElementById("snakes-canvas");
         let ctx = canvas.getContext("2d");
-        let itemWidth = canvas.height / scalefact;
+        let itemWidth = (canvas.height / scalefact);
+        let score = 0;
 
         let snake = [];
         newSnake();
@@ -46,13 +48,20 @@ window.onload = function playGame() {
             ctx.fillStyle = "#000000";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            ctx.fillStyle = "#FF00FF";
+            ctx.font = "15px Comic Sans MS";
+            ctx.strokeText(score + " ", 5, 15);
+
             ctx.fillStyle = "#FF0000";
             ctx.fillRect(apple.xPos, apple.yPos, itemWidth, itemWidth);
+            ctx.strokeStyle = "#00FFFF";
+            ctx.rect(apple.xPos, apple.yPos, itemWidth, itemWidth);
+            ctx.stroke();
 
             //Draw the snakes pieces
             ctx.fillStyle = "#1FFF1F";
             for (let i = 0; i < snake.length; i+=1) {
-                ctx.fillRect(snake[i].xPos, snake[i].yPos, itemWidth, itemWidth);
+                ctx.fillRect(snake[i].xPos+1, snake[i].yPos+1, itemWidth-2, itemWidth-2);
             }
             ctx.fillStyle = "#0000FF";
             ctx.fillRect(snake[0].xPos, snake[0].yPos, itemWidth, itemWidth);
@@ -61,38 +70,50 @@ window.onload = function playGame() {
             let newX = snake[0].xPos + (xVelocity * itemWidth);
             let newY = snake[0].yPos + (yVelocity * itemWidth);
 
-            //If head consumes apple
-            if (newX === apple.xPos && newY === apple.yPos) {
-                consumedApple = true;
-            }
-
             //Check if snake exceeds bounds of the canvas
             if (newX > canvas.width-1) newX = 0;
             if (newY > canvas.height-1) newY = 0;
             if (newX < -1) newX = canvas.width - itemWidth;
             if (newY < -1) newY = canvas.height - itemWidth;
 
-            let restart = false;
-            //if snake hit its own body pieces
-            for (let i = 0; i < snake.length; i++) {
-                if (snake[i].xPos === newX && snake[i].yPos === newY) {
-                    newSnake();
-                    xVelocity = 1;
-                    yVelocity = 0;
-                    restart = true;
-                }
-            }
+           if (collisionsOn) {
+               collisionCheck();
+           }
+           else {
+               snake.unshift(new SnakeObject(newX, newY));
+               snake.splice(-1,1);
+           }
 
-            if (!restart) {
-                //Move head piece forward and delete last body piece
-                snake.unshift(new SnakeObject(newX, newY));
-                if (!consumedApple) {
-                    snake.splice(-1, 1);
-                }
-                else {
-                    apple = new AppleObject();
-                }
-            }
+           function collisionCheck() {
+               //If head consumes apple
+               if (newX === apple.xPos && newY === apple.yPos) {
+                   consumedApple = true;
+               }
+
+               let restart = false;
+               //if snake hit its own body pieces
+               for (let i = 0; i < snake.length; i++) {
+                   if (snake[i].xPos === newX && snake[i].yPos === newY) {
+                       newSnake();
+                       score = 0;
+                       xVelocity = 1;
+                       yVelocity = 0;
+                       restart = true;
+                   }
+               }
+
+               if (!restart) {
+                   //Move head piece forward and delete last body piece
+                   snake.unshift(new SnakeObject(newX, newY));
+                   if (!consumedApple) {
+                       snake.splice(-1, 1);
+                   }
+                   else {
+                       apple = new AppleObject();
+                       score++;
+                   }
+               }
+           }
         }
 
         //Generates an array with the starting snake of len 5
@@ -119,7 +140,7 @@ window.onload = function playGame() {
     }
 }
 
-function keyPush(key) {
+function keyPushS(key) {
     switch (key.keyCode) {
         case 37: // Left arrow
             if (xVelocity !==1) {
@@ -144,6 +165,9 @@ function keyPush(key) {
                 xVelocity = 0;
                 yVelocity = 1;
             }
+            break;
+        case 13:
+            collisionsOn = !collisionsOn;
             break;
         case 116:
             location.reload();
