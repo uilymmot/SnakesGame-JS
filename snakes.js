@@ -94,6 +94,7 @@ window.onload = function playSnakes() {
                //if snake hit its own body pieces
                for (let i = 0; i < snake.length; i++) {
                    if (snake[i].xPos === newX && snake[i].yPos === newY) {
+                       alert('You ate your tail');
                        newSnake();
                        score = 0;
                        xVelocity = 1;
