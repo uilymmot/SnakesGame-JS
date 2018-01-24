@@ -13,88 +13,66 @@ window.onload = function playSnakes() {
         let ctx = canvas.getContext("2d");
         let itemWidth = (canvas.height / scalefact);
         let score = 0;
-
         let snake = [];
         newSnake();
         let apple = new AppleObject();
-
+        let superApple = false;
         //Updates the snake/apple in some time
         window.setInterval(pGame, 1000/10);
-
         function SnakeObject(x, y) {
             this.xPos = x;
             this.yPos = y;
         }
-
         function AppleObject() {
             this.xPos = ((Math.round(Math.random() * scalefact)) * itemWidth);
             this.yPos = ((Math.round(Math.random() * scalefact)) * itemWidth);
         }
-
         function pGame() {
             let consumedApple = false;
             appleCheck();
-
             //Make sure apple lies within bounds
             if (apple.xPos > canvas.width - itemWidth
-                || apple.yPos > canvas.height - itemWidth) {
+                || apple.yPos > canvas.height - itemWidth)
                 apple = new AppleObject();
-            }
-
             //Clear canvas at start of every iteration
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            //Make background black
             ctx.fillStyle = "#000000";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-
             ctx.fillStyle = "#FF00FF";
             ctx.font = "15px Comic Sans MS";
             ctx.strokeText(score + " ", 5, 15);
-
-            ctx.fillStyle = "#FF0000";
+            ctx.fillStyle = (!superApple) ? "#FF0000" : "#11AA88";
             ctx.fillRect(apple.xPos, apple.yPos, itemWidth, itemWidth);
             ctx.strokeStyle = "#00FFFF";
             ctx.rect(apple.xPos, apple.yPos, itemWidth, itemWidth);
             ctx.stroke();
-
             //Draw the snakes pieces
             ctx.fillStyle = "#1FFF1F";
-            for (let i = 0; i < snake.length; i+=1) {
+            for (let i = 0; i < snake.length; i+=1)
                 ctx.fillRect(snake[i].xPos+1, snake[i].yPos+1, itemWidth-2, itemWidth-2);
-            }
             ctx.fillStyle = "#0000FF";
             ctx.fillRect(snake[0].xPos, snake[0].yPos, itemWidth, itemWidth);
-
             //Determine the new position for the snake head segment
             let newX = snake[0].xPos + (xVelocity * itemWidth);
             let newY = snake[0].yPos + (yVelocity * itemWidth);
-
             //Check if snake exceeds bounds of the canvas
             if (newX > canvas.width-1) newX = 0;
             if (newY > canvas.height-1) newY = 0;
             if (newX < -1) newX = canvas.width - itemWidth;
             if (newY < -1) newY = canvas.height - itemWidth;
-
-           if (collisionsOn) {
-               collisionCheck();
-           }
+           if (collisionsOn) collisionCheck();
            else {
                snake.unshift(new SnakeObject(newX, newY));
                snake.splice(-1,1);
            }
-
            function collisionCheck() {
                //If head consumes apple
-               if (newX === apple.xPos && newY === apple.yPos) {
+               if (newX === apple.xPos && newY === apple.yPos)
                    consumedApple = true;
-               }
-
                let restart = false;
                //if snake hit its own body pieces
                for (let i = 0; i < snake.length; i++) {
                    if (snake[i].xPos === newX && snake[i].yPos === newY) {
-                       alert('You ate your tail');
                        newSnake();
                        score = 0;
                        xVelocity = 1;
@@ -102,29 +80,32 @@ window.onload = function playSnakes() {
                        restart = true;
                    }
                }
-
                if (!restart) {
                    //Move head piece forward and delete last body piece
                    snake.unshift(new SnakeObject(newX, newY));
-                   if (!consumedApple) {
-                       snake.splice(-1, 1);
-                   }
+                   if (!consumedApple) snake.splice(-1, 1);
                    else {
                        apple = new AppleObject();
+                       if (superApple) {
+                           for (let i = 0; i < 5; i++) {
+                               let finX = snake[snake.length - 1].xPos + (-xVelocity * itemWidth);
+                               let finY = snake[snake.length - 1].yPos + (-yVelocity * itemWidth);
+                               snake.push(new SnakeObject(finX, finY));
+                               score++;
+                           }
+                       }
+                       superApple = Math.random() > 0.750;
                        score++;
                    }
                }
            }
         }
-
         //Generates an array with the starting snake of len 5
         function newSnake() {
             snake = [];
-            for (let i = (itemWidth * 5); i <= (itemWidth*5) + (itemWidth * 5); i += itemWidth) {
+            for (let i = (itemWidth * 5); i <= (itemWidth*5) + (itemWidth * 5); i += itemWidth)
                 snake.push(new SnakeObject((itemWidth * 10), i));
-            }
         }
-
         function appleCheck() {
             let recheck = false;
             for (let i = 0; i < snake.length; i++) {
@@ -134,13 +115,10 @@ window.onload = function playSnakes() {
                     break;
                 }
             }
-            if (recheck) {
-                appleCheck();
-            }
+            if (recheck) appleCheck();
         }
     }
 }
-
 function keyPushS(key) {
     switch (key.keyCode) {
         case 37: // Left arrow
